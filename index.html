@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 Cake Catcher — Catch the Cake!</title>
+    <meta name="description" content="Cake Catcher - A pixel art arcade game. Play as Celia the Elf and catch delicious cakes!">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container"></div>
+
+    <!-- Phaser 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js"></script>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Utils (load first) -->
+    <script src="src/utils/Constants.js"></script>
+    <script src="src/utils/SupabaseManager.js"></script>
+    <script src="src/utils/StatsManager.js"></script>
+    <script src="src/utils/DifficultyManager.js"></script>
+    
+    <!-- Game Objects -->
+    <script src="src/objects/Shadow.js"></script>
+    <script src="src/objects/Player.js"></script>
+    <script src="src/objects/Cake.js"></script>
+    <script src="src/objects/Tomato.js"></script>
+    <script src="src/objects/Mimic.js"></script>
+    
+    <!-- Scenes -->
+    <script src="src/scenes/BootScene.js"></script>
+    <script src="src/scenes/MenuScene.js"></script>
+    <script src="src/scenes/CutsceneScene.js"></script>
+    <script src="src/scenes/GameScene.js"></script>
+    <script src="src/scenes/GameOverScene.js"></script>
+    <script src="src/scenes/StatsScene.js"></script>
+    <script src="src/scenes/CreditsScene.js"></script>
+    
+    <!-- Main (load last) -->
+    <script src="src/main.js"></script>
+</body>
+</html>

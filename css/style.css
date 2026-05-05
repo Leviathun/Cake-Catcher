@@ -1,0 +1,85 @@
+/* ============================================
+   Cake Catcher — Page Styles
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #1a1a2e;
+    font-family: 'Press Start 2P', monospace;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#game-container {
+    position: relative;
+    border: 4px solid #4CAF50;
+    border-radius: 4px;
+    box-shadow: 
+        0 0 20px rgba(76, 175, 80, 0.3),
+        0 0 60px rgba(76, 175, 80, 0.1),
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+    background-color: #000;
+}
+
+#game-container canvas {
+    display: block;
+}
+
+/* Name input overlay for Game Over scene */
+#name-input-overlay {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+#name-input-overlay input {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    padding: 10px 16px;
+    background: #2a1a3e;
+    color: #FFD700;
+    border: 3px solid #4CAF50;
+    border-radius: 4px;
+    outline: none;
+    text-align: center;
+    width: 280px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#name-input-overlay input::placeholder {
+    color: rgba(255, 215, 0, 0.4);
+    font-size: 10px;
+}
+
+#name-input-overlay input:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Loading screen fallback */
+.loading-text {
+    color: #4CAF50;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+}
