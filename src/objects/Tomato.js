@@ -11,14 +11,14 @@ class Tomato extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
         
-        // Scale — 1024px image, we want ~48px in-game
-        this.setScale(0.05);
+        // Scale — 128px image, we want ~48px in-game
+        this.setScale(0.375);
         this.setDepth(6);
         this.body.setAllowGravity(false);
         
-        // Adjust physics body for circular tomato shape
-        this.body.setSize(700, 700);
-        this.body.setOffset(160, 160);
+        // Adjust physics body for 128px circular tomato
+        this.body.setSize(90, 90);
+        this.body.setOffset(19, 19);
         
         // Shadow
         this.shadow = new Shadow(scene, x);
