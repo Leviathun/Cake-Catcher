@@ -14,9 +14,9 @@ class MenuScene extends Phaser.Scene {
         this.cameras.main.fadeIn(500);
         this.cameras.main.setBackgroundColor(0x1a1a2e);
         
-        // Ruins background
-        if (this.textures.exists('bg_ruins')) {
-            const bg = this.add.image(width / 2, height / 2, 'bg_ruins');
+        // Background
+        if (this.textures.exists('bg')) {
+            const bg = this.add.image(width / 2, height / 2, 'bg');
             bg.setDisplaySize(width, height);
             bg.setDepth(0);
         }
@@ -25,38 +25,38 @@ class MenuScene extends Phaser.Scene {
         const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.25);
         overlay.setDepth(1);
         
-        // Title shadow
-        this.add.text(width / 2 + 3, 133, 'Cake Catcher', {
-            fontFamily: '"Press Start 2P"',
-            fontSize: '42px',
-            color: '#000000',
-            align: 'center',
-        }).setOrigin(0.5).setAlpha(0.3).setDepth(2);
+        // Title Header Background
+        let headerBg;
+        if (this.textures.exists('ui_header_a')) {
+            headerBg = this.add.image(width / 2, 100, 'ui_header_a');
+            headerBg.setDisplaySize(600, 120);
+            headerBg.setDepth(2);
+        }
         
         // Title text
-        const title = this.add.text(width / 2, 130, 'Cake Catcher', {
+        const title = this.add.text(width / 2, 100, 'CAKE CATCHER', {
             fontFamily: '"Press Start 2P"',
-            fontSize: '42px',
-            color: '#FFD700',
+            fontSize: '32px',
+            color: '#8B4513', 
             align: 'center',
-            stroke: '#8B4513',
-            strokeThickness: 4,
+            stroke: '#ffffff',
+            strokeThickness: 2,
         });
         title.setOrigin(0.5);
         title.setDepth(2);
         
         // Title bounce animation
         this.tweens.add({
-            targets: title,
-            y: 140,
+            targets: headerBg ? [title, headerBg] : title,
+            y: '+=10',
             duration: 1500,
             repeat: -1,
             yoyo: true,
             ease: 'Sine.easeInOut'
         });
         
-        // Cake emoji subtitle
-        const subtitle = this.add.text(width / 2, 195, '🍰 Catch the Cake! 🍰', {
+        // subtitle
+        const subtitle = this.add.text(width / 2, 195, 'Catch the cake and dodge the tomatoes!', {
             fontFamily: '"Press Start 2P"',
             fontSize: '14px',
             color: '#ffffff',
@@ -68,8 +68,8 @@ class MenuScene extends Phaser.Scene {
         
         // Character preview — Celia with home_idle animation
         if (this.textures.exists('home_idle')) {
-            const celia = this.add.sprite(width / 2, height / 2, 'home_idle');
-            celia.setScale(0.6);
+            const celia = this.add.sprite(width / 2, 320, 'home_idle');
+            celia.setScale(1.5);
             celia.setDepth(1);
             celia.play('celia_home_idle');
             
@@ -84,46 +84,68 @@ class MenuScene extends Phaser.Scene {
             });
         }
         
-        // ============ BUTTONS ============
-        const buttonY = height / 2 + 150;
-        const buttonSpacing = 60;
+        // ============ MENU PANEL ============
+        const buttonY = height / 2 + 130;
+        const buttonSpacing = 75;
         
-        this.createButton(width / 2, buttonY, '▶  START GAME', () => {
+        if (this.textures.exists('ui_slices_home')) {
+            const panel = this.add.image(width / 2, buttonY + buttonSpacing, 'ui_slices_home');
+            panel.setDisplaySize(380, 360);
+            panel.setDepth(3);
+            panel.setAlpha(0.9);
+        }
+        
+        // ============ BUTTONS ============
+        this.createButton(width / 2, buttonY, 'START GAME', 1, () => {
+            this.stopBGM();
             this.cameras.main.fadeOut(300, 0, 0, 0);
             this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start(CONFIG.SCENE_CUTSCENE);
             });
         });
         
-        this.createButton(width / 2, buttonY + buttonSpacing, '🏆  LEADERBOARD', () => {
+        this.createButton(width / 2, buttonY + buttonSpacing, 'LEADERBOARD', 0, () => {
+            this.stopBGM();
             this.cameras.main.fadeOut(300, 0, 0, 0);
             this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start(CONFIG.SCENE_STATS);
             });
         });
         
-        this.createButton(width / 2, buttonY + buttonSpacing * 2, '📜  CREDITS', () => {
+        this.createButton(width / 2, buttonY + buttonSpacing * 2, 'CREDITS', 3, () => {
+            this.stopBGM();
             this.cameras.main.fadeOut(300, 0, 0, 0);
             this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start(CONFIG.SCENE_CREDITS);
             });
         });
         
-        // Falling cake background animation
-        this.createFallingCakes();
-        
         // Version text
-        this.add.text(width - 10, height - 10, 'v1.1', {
+        this.add.text(width - 10, height - 10, 'v2', {
             fontFamily: '"Press Start 2P"',
             fontSize: '8px',
             color: '#ffffff',
             alpha: 0.4,
         }).setOrigin(1, 1).setDepth(2);
+        
+        // ============ AMBIENT DECORATIONS ============
+        this.createAmbientDecorations(width, height);
+        
+        // ============ BGM ============
+        this.playBGM('bgm_home');
     }
 
-    createButton(x, y, label, callback) {
-        const bg = this.add.rectangle(x, y, 320, 42, 0x2a1a3e, 0.9);
-        bg.setStrokeStyle(2, 0x4CAF50);
+    createButton(x, y, label, frameIndex, callback) {
+        let bg;
+        if (this.textures.exists('ui_button')) {
+            bg = this.add.sprite(x, y, 'ui_button', frameIndex);
+            bg.setScale(3);
+            bg.setTint(0xcccccc); // slightly darker when idle
+        } else {
+            bg = this.add.rectangle(x, y, 320, 42, 0x2a1a3e, 0.9);
+            bg.setStrokeStyle(2, 0x4CAF50);
+        }
+        
         bg.setInteractive({ useHandCursor: true });
         bg.setDepth(4);
         
@@ -131,30 +153,34 @@ class MenuScene extends Phaser.Scene {
             fontFamily: '"Press Start 2P"',
             fontSize: '13px',
             color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 3,
         });
         text.setOrigin(0.5);
         text.setDepth(4);
         
         bg.on('pointerover', () => {
-            bg.setFillStyle(0x4CAF50, 0.8);
             text.setColor('#FFD700');
-            this.tweens.add({
-                targets: [bg, text],
-                scaleX: 1.05,
-                scaleY: 1.05,
-                duration: 100,
-            });
+            if (bg.type === 'Sprite') {
+                bg.clearTint();
+                this.tweens.add({ targets: bg, scaleX: 3.1, scaleY: 3.1, duration: 100 });
+                this.tweens.add({ targets: text, scaleX: 1.05, scaleY: 1.05, duration: 100 });
+            } else {
+                bg.setFillStyle(0x4CAF50, 0.8);
+                this.tweens.add({ targets: [bg, text], scaleX: 1.05, scaleY: 1.05, duration: 100 });
+            }
         });
         
         bg.on('pointerout', () => {
-            bg.setFillStyle(0x2a1a3e, 0.9);
             text.setColor('#ffffff');
-            this.tweens.add({
-                targets: [bg, text],
-                scaleX: 1,
-                scaleY: 1,
-                duration: 100,
-            });
+            if (bg.type === 'Sprite') {
+                bg.setTint(0xcccccc);
+                this.tweens.add({ targets: bg, scaleX: 3, scaleY: 3, duration: 100 });
+                this.tweens.add({ targets: text, scaleX: 1, scaleY: 1, duration: 100 });
+            } else {
+                bg.setFillStyle(0x2a1a3e, 0.9);
+                this.tweens.add({ targets: [bg, text], scaleX: 1, scaleY: 1, duration: 100 });
+            }
         });
         
         bg.on('pointerdown', callback);
@@ -162,30 +188,62 @@ class MenuScene extends Phaser.Scene {
         return { bg, text };
     }
 
-    createFallingCakes() {
+    // ============================================
+    // AMBIENT DECORATIONS
+    // ============================================
+    createAmbientDecorations(width, height) {
+        // Spawn leaves and feathers falling slowly
         this.time.addEvent({
-            delay: 2000,
+            delay: 2500,
             loop: true,
             callback: () => {
-                if (this.textures.exists('cake')) {
-                    const cake = this.add.image(
-                        Phaser.Math.Between(100, CONFIG.GAME_WIDTH - 100),
-                        -30,
-                        'cake'
+                const useLeaf = Phaser.Math.Between(0, 1) === 0;
+                const key = useLeaf ? 'deco_leaf' : 'deco_feather';
+                const animKey = useLeaf ? 'leaf_float' : 'feather_float';
+                
+                if (this.textures.exists(key)) {
+                    const deco = this.add.sprite(
+                        Phaser.Math.Between(50, width - 50),
+                        -20,
+                        key
                     );
-                    cake.setScale(0.04);
-                    cake.setAlpha(0.3);
-                    cake.setDepth(1);
+                    deco.setScale(useLeaf ? 2.5 : 2);
+                    deco.setAlpha(0.35);
+                    deco.setDepth(1);
+                    deco.play(animKey);
                     
                     this.tweens.add({
-                        targets: cake,
-                        y: CONFIG.GAME_HEIGHT + 50,
+                        targets: deco,
+                        y: height + 30,
+                        x: deco.x + Phaser.Math.Between(-100, 100),
                         angle: Phaser.Math.Between(-180, 180),
-                        duration: Phaser.Math.Between(4000, 7000),
-                        onComplete: () => cake.destroy()
+                        duration: Phaser.Math.Between(5000, 9000),
+                        ease: 'Sine.easeInOut',
+                        onComplete: () => deco.destroy()
                     });
                 }
             }
         });
+    }
+
+    // ============================================
+    // BGM
+    // ============================================
+    playBGM(key) {
+        try {
+            this.stopBGM();
+            if (this.cache.audio.exists(key)) {
+                this.bgm = this.sound.add(key, { volume: 0.3, loop: true });
+                this.bgm.play();
+            }
+        } catch (e) { /* Audio not available */ }
+    }
+
+    stopBGM() {
+        if (this.bgm && this.bgm.isPlaying) {
+            this.bgm.stop();
+            this.bgm.destroy();
+            this.bgm = null;
+        }
     }
 }

@@ -51,29 +51,44 @@ class GameOverScene extends Phaser.Scene {
             ease: 'Sine.easeInOut'
         });
         
+        // ============ LEFT COLUMN: VISUALS ============
+        const leftX = width * 0.3;
+        
         // Death cause
         const isMimicDeath = this.deathCause === 'mimic';
-        const causeEmoji = isMimicDeath ? '📦' : '💔';
-        const causeText = isMimicDeath ? 'Eaten by Mimic!' : 'Ran out of HP!';
+        const causeText = isMimicDeath ? 'It\'s so dark. I\'m scared. It\'s dark.' : 'Frieren-sama, don\'t be so picky!\nNo, I want to eat cake.';
         
-        this.add.text(width / 2, 140, `${causeEmoji} ${causeText}`, {
+        this.add.text(leftX, 550, causeText, {
             fontFamily: '"Press Start 2P"',
-            fontSize: '14px',
+            fontSize: '16px',
             color: '#FF8C00',
             stroke: '#000000',
             strokeThickness: 2,
+            padding: { top: 4, bottom: 4 }
         }).setOrigin(0.5);
         
-        // Show mimic death image if killed by mimic
+        // Show death image
         if (isMimicDeath && this.textures.exists('hit_by_mimic')) {
-            const mimicImg = this.add.image(width / 2, 250, 'hit_by_mimic');
-            mimicImg.setScale(0.18);
-            mimicImg.setAlpha(0.9);
+            const mimicImg = this.add.image(leftX, 350, 'hit_by_mimic');
+            mimicImg.setScale(0.35);
+            mimicImg.setAlpha(0.95);
             
-            // Subtle animation
             this.tweens.add({
                 targets: mimicImg,
-                scale: { from: 0.17, to: 0.19 },
+                scale: { from: 0.33, to: 0.37 },
+                duration: 1200,
+                repeat: -1,
+                yoyo: true,
+                ease: 'Sine.easeInOut'
+            });
+        } else if (!isMimicDeath && this.textures.exists('loss_by_tomato')) {
+            const tomatoImg = this.add.image(leftX, 350, 'loss_by_tomato');
+            tomatoImg.setScale(2.5);
+            tomatoImg.setAlpha(0.95);
+            
+            this.tweens.add({
+                targets: tomatoImg,
+                scale: { from: 2.3, to: 2.7 },
                 duration: 1200,
                 repeat: -1,
                 yoyo: true,
@@ -81,23 +96,39 @@ class GameOverScene extends Phaser.Scene {
             });
         }
         
-        // ============ SCORE DISPLAY ============
-        const panelY = isMimicDeath ? 380 : 240;
+        // ============ RIGHT COLUMN: STATS & ACTIONS ============
+        const rightX = width * 0.72;
+        const panelY = 380; // Center of the right panel
         
         // Score panel background
-        const panel = this.add.rectangle(width / 2, panelY + 40, 420, 130, 0x2a1a3e, 0.9);
-        panel.setStrokeStyle(2, 0x4CAF50);
+        if (this.textures.exists('ui_slices_gameover')) {
+            const panel = this.add.image(rightX, panelY + 20, 'ui_slices_gameover');
+            panel.setDisplaySize(420, 560);
+            panel.setDepth(0);
+        } else {
+            const panel = this.add.rectangle(rightX, panelY + 20, 420, 560, 0x2a1a3e, 0.9);
+            panel.setStrokeStyle(2, 0x4CAF50);
+        }
         
-        this.add.text(width / 2, panelY, '🍰 SCORE', {
+        // Score Compass
+        let compassY = panelY - 140;
+        if (this.textures.exists('ui_compass')) {
+            const compass = this.add.image(rightX, compassY, 'ui_compass');
+            compass.setScale(1.5);
+        }
+        
+        this.add.text(rightX, compassY - 70, 'SCORE', {
             fontFamily: '"Press Start 2P"',
             fontSize: '14px',
-            color: '#4CAF50',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 2,
         }).setOrigin(0.5);
         
-        const scoreNumber = this.add.text(width / 2, panelY + 35, String(this.finalScore), {
+        const scoreNumber = this.add.text(rightX, compassY + 5, String(this.finalScore), {
             fontFamily: '"Press Start 2P"',
-            fontSize: '36px',
-            color: '#FFD700',
+            fontSize: '32px',
+            color: '#ffffff',
             stroke: '#000000',
             strokeThickness: 3,
         });
@@ -115,59 +146,63 @@ class GameOverScene extends Phaser.Scene {
             }
         });
         
-        this.add.text(width / 2, panelY + 75, `Cakes: ${this.cakesCollected}  |  Time: ${Math.floor(this.playTime)}s`, {
+        // Cakes & Time
+        this.add.text(rightX, compassY + 70, `Cakes: ${this.cakesCollected}  |  Time: ${Math.floor(this.playTime)}s`, {
             fontFamily: '"Press Start 2P"',
-            fontSize: '9px',
-            color: '#aaaaaa',
+            fontSize: '10px',
+            color: '#dddddd',
         }).setOrigin(0.5);
         
         // ============ NAME INPUT ============
-        const nameY = panelY + 140;
+        const nameY = compassY + 130;
         
-        this.add.text(width / 2, nameY, 'Enter your name:', {
+        this.add.text(rightX, nameY, 'Enter your name:', {
             fontFamily: '"Press Start 2P"',
             fontSize: '11px',
             color: '#ffffff',
         }).setOrigin(0.5);
         
-        // Name display text (shown in Phaser)
+        // Name display text
         const savedName = window.statsManager.getPlayerName() || 'PLAYER';
         this.playerName = savedName;
         
-        this.nameDisplay = this.add.text(width / 2, nameY + 35, savedName, {
+        if (this.textures.exists('ui_tab_rank')) {
+            const nameBg = this.add.sprite(rightX, nameY + 35, 'ui_tab_rank', 0);
+            nameBg.setDisplaySize(200, 45);
+            nameBg.setTint(0xcccccc);
+            nameBg.setInteractive({ useHandCursor: true });
+            nameBg.on('pointerdown', () => this.promptName());
+        }
+        
+        this.nameDisplay = this.add.text(rightX, nameY + 38, savedName, {
             fontFamily: '"Press Start 2P"',
-            fontSize: '18px',
-            color: '#FFD700',
-            backgroundColor: '#2a1a3e',
-            padding: { x: 16, y: 8 },
-            stroke: '#4CAF50',
+            fontSize: '16px',
+            color: '#8B4513',
+            stroke: '#ffffff',
             strokeThickness: 2,
         });
         this.nameDisplay.setOrigin(0.5);
         this.nameDisplay.setInteractive({ useHandCursor: true });
+        this.nameDisplay.on('pointerdown', () => this.promptName());
         
-        // Click to edit name
-        this.nameDisplay.on('pointerdown', () => {
-            this.promptName();
-        });
-        
-        const editHint = this.add.text(width / 2, nameY + 65, '(click to change)', {
+        const editHint = this.add.text(rightX, nameY + 65, '(click to change)', {
             fontFamily: '"Press Start 2P"',
             fontSize: '8px',
-            color: '#888888',
+            color: '#aaaaaa',
         }).setOrigin(0.5);
         
         // ============ BUTTONS ============
-        const btnY = height - 180;
+        const btnY = nameY + 110;
         
         // Submit button
-        this.submitBtn = this.createButton(width / 2, btnY, '📤 SUBMIT SCORE', async () => {
+        this.submitBtn = this.createButton(rightX, btnY, 'SUBMIT SCORE', async () => {
             if (this.submitted) return;
             await this.submitScore();
         });
         
         // Retry button
-        this.createButton(width / 2, btnY + 55, '🔄 RETRY', () => {
+        this.createButton(rightX, btnY + 55, 'RETRY', () => {
+            this.stopBGM();
             this.cameras.main.fadeOut(300);
             this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start(CONFIG.SCENE_CUTSCENE);
@@ -175,20 +210,25 @@ class GameOverScene extends Phaser.Scene {
         });
         
         // Menu button
-        this.createButton(width / 2, btnY + 110, '🏠 MENU', () => {
+        this.createButton(rightX, btnY + 110, 'MENU', () => {
+            this.stopBGM();
             this.cameras.main.fadeOut(300);
             this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.scene.start(CONFIG.SCENE_MENU);
             });
         });
         
-        // Status text for submit
-        this.statusText = this.add.text(width / 2, btnY - 25, '', {
-            fontFamily: '"Press Start 2P"',
-            fontSize: '9px',
+        // Status text for submit (Between Cakes/Time and Name Input)
+        this.statusText = this.add.text(rightX, compassY + 100, '', {
+            fontFamily: '"Press Start 2P", "Segoe UI Emoji", "Apple Color Emoji"',
+            fontSize: '10px',
             color: '#4CAF50',
+            padding: { top: 4, bottom: 4 }
         });
         this.statusText.setOrigin(0.5);
+        
+        // ============ BGM ============
+        this.playBGM('bgm_normal');
     }
 
     promptName() {
@@ -235,29 +275,71 @@ class GameOverScene extends Phaser.Scene {
     }
 
     createButton(x, y, label, callback) {
-        const bg = this.add.rectangle(x, y, 300, 40, 0x2a1a3e, 0.9);
-        bg.setStrokeStyle(2, 0x4CAF50);
+        let bg;
+        if (this.textures.exists('ui_button')) {
+            bg = this.add.sprite(x, y, 'ui_button', 0);
+            bg.setScale(3, 2.2); // Reduced height
+        } else {
+            bg = this.add.rectangle(x, y, 280, 44, 0x2a1a3e, 0.9);
+            bg.setStrokeStyle(2, 0x4CAF50);
+        }
         bg.setInteractive({ useHandCursor: true });
         
         const text = this.add.text(x, y, label, {
-            fontFamily: '"Press Start 2P"',
+            fontFamily: '"Press Start 2P", "Segoe UI Emoji", "Apple Color Emoji"',
             fontSize: '12px',
             color: '#ffffff',
+            padding: { top: 4, bottom: 4 }
         });
         text.setOrigin(0.5);
         
         bg.on('pointerover', () => {
-            bg.setFillStyle(0x4CAF50, 0.8);
             text.setColor('#FFD700');
+            if (bg.type === 'Sprite') {
+                bg.clearTint();
+                this.tweens.add({ targets: bg, scaleX: 3.1, scaleY: 2.3, duration: 100 });
+                this.tweens.add({ targets: text, scaleX: 1.05, scaleY: 1.05, duration: 100 });
+            } else {
+                bg.setFillStyle(0x4CAF50, 0.8);
+                this.tweens.add({ targets: [bg, text], scaleX: 1.05, scaleY: 1.05, duration: 100 });
+            }
         });
         
         bg.on('pointerout', () => {
-            bg.setFillStyle(0x2a1a3e, 0.9);
             text.setColor('#ffffff');
+            if (bg.type === 'Sprite') {
+                bg.setTint(0xcccccc);
+                this.tweens.add({ targets: bg, scaleX: 3, scaleY: 2.2, duration: 100 });
+                this.tweens.add({ targets: text, scaleX: 1, scaleY: 1, duration: 100 });
+            } else {
+                bg.setFillStyle(0x2a1a3e, 0.9);
+                this.tweens.add({ targets: [bg, text], scaleX: 1, scaleY: 1, duration: 100 });
+            }
         });
         
         bg.on('pointerdown', callback);
         
         return { bg, text };
+    }
+
+    // ============================================
+    // BGM
+    // ============================================
+    playBGM(key) {
+        try {
+            this.stopBGM();
+            if (this.cache.audio.exists(key)) {
+                this.bgm = this.sound.add(key, { volume: 0.3, loop: true });
+                this.bgm.play();
+            }
+        } catch (e) { /* Audio not available */ }
+    }
+
+    stopBGM() {
+        if (this.bgm && this.bgm.isPlaying) {
+            this.bgm.stop();
+            this.bgm.destroy();
+            this.bgm = null;
+        }
     }
 }

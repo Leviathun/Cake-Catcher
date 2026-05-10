@@ -10,14 +10,14 @@ class Cake extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
         
-        // Scale — 1024px image, we want ~48px in-game
-        this.setScale(0.05);
+        // Scale — 128px image, we want ~48px in-game
+        this.setScale(0.375);
         this.setDepth(6);
         this.body.setAllowGravity(false);
         
-        // Adjust physics body
-        this.body.setSize(800, 800);
-        this.body.setOffset(112, 112);
+        // Adjust physics body for 128px sprite
+        this.body.setSize(100, 100);
+        this.body.setOffset(14, 14);
         
         // Shadow
         this.shadow = new Shadow(scene, x);

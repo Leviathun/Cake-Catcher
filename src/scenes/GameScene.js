@@ -22,10 +22,10 @@ class GameScene extends Phaser.Scene {
         this.cameras.main.fadeIn(300);
         
         // ============ BACKGROUND ============
-        if (this.textures.exists('bg_ruins')) {
-            this.bgRuins = this.add.image(width / 2, height / 2, 'bg_ruins');
-            this.bgRuins.setDisplaySize(width, height);
-            this.bgRuins.setDepth(0);
+        if (this.textures.exists('bg')) {
+            this.bgImage = this.add.image(width / 2, height / 2, 'bg');
+            this.bgImage.setDisplaySize(width, height);
+            this.bgImage.setDepth(0);
         } else {
             this.cameras.main.setBackgroundColor(0x87CEEB);
         }
@@ -101,6 +101,9 @@ class GameScene extends Phaser.Scene {
         
         // ============ GAME TIMER ============
         this.gameStartTime = this.time.now;
+        
+        // ============ BGM ============
+        this.playBGM('bgm_game');
     }
 
     // ============================================
@@ -112,18 +115,18 @@ class GameScene extends Phaser.Scene {
         // HP Display (pixel art hearts)
         this.hearts = [];
         for (let i = 0; i < CONFIG.INITIAL_HP; i++) {
-            const heart = this.add.image(30 + i * 45, 30, 'hp');
-            heart.setScale(0.04);
+            const heart = this.add.image(35 + i * 45, 30, 'hp');
+            heart.setScale(0.4);
             heart.setDepth(uiDepth);
             this.hearts.push(heart);
         }
         
         // Score display
-        const cakeIcon = this.add.image(25, 75, 'cake');
-        cakeIcon.setScale(0.03);
+        const cakeIcon = this.add.image(30, 80, 'cake');
+        cakeIcon.setScale(0.4);
         cakeIcon.setDepth(uiDepth);
         
-        this.scoreText = this.add.text(50, 68, 'x 0', {
+        this.scoreText = this.add.text(60, 65, 'x 0', {
             fontFamily: '"Press Start 2P"',
             fontSize: '18px',
             color: '#FFD700',
@@ -133,14 +136,24 @@ class GameScene extends Phaser.Scene {
         this.scoreText.setDepth(uiDepth);
         
         // Difficulty label
-        this.diffLabel = this.add.text(CONFIG.GAME_WIDTH - 20, 25, 'Easy', {
+        const diffX = CONFIG.GAME_WIDTH - 60;
+        const diffY = 30;
+        
+        if (this.textures.exists('ui_tab_rank')) {
+            this.diffBg = this.add.sprite(diffX, diffY, 'ui_tab_rank', 0);
+            this.diffBg.setDisplaySize(120, 40);
+            this.diffBg.setDepth(uiDepth - 1);
+            this.diffBg.setTint(0xcccccc);
+        }
+
+        this.diffLabel = this.add.text(diffX, diffY, 'Easy', {
             fontFamily: '"Press Start 2P"',
-            fontSize: '10px',
+            fontSize: '15px',
             color: '#4CAF50',
             stroke: '#000000',
             strokeThickness: 2,
         });
-        this.diffLabel.setOrigin(1, 0);
+        this.diffLabel.setOrigin(0.5);
         this.diffLabel.setDepth(uiDepth);
     }
 
@@ -159,7 +172,7 @@ class GameScene extends Phaser.Scene {
         if (this.player.hp === 1) {
             this.tweens.add({
                 targets: this.hearts[0],
-                scale: { from: 0.04, to: 0.055 },
+                scale: { from: 0.4, to: 0.5 },
                 duration: 300,
                 repeat: -1,
                 yoyo: true,
@@ -249,9 +262,6 @@ class GameScene extends Phaser.Scene {
         // Set velocity AFTER adding to group (group.add can reset body)
         cake.body.setAllowGravity(false);
         cake.setFallSpeed(this.difficultyManager.getCakeSpeed());
-        
-        // Play drop sound
-        this.playSound('sfx_drop', 0.3);
     }
 
     spawnTomato() {
@@ -268,8 +278,6 @@ class GameScene extends Phaser.Scene {
         // Set velocity AFTER adding to group (group.add can reset body)
         tomato.body.setAllowGravity(false);
         tomato.setFallSpeed(this.difficultyManager.getTomatoSpeed());
-        
-        this.playSound('sfx_drop', 0.2);
     }
 
     spawnMimic() {
@@ -282,8 +290,6 @@ class GameScene extends Phaser.Scene {
         // Set velocity AFTER adding to group (group.add can reset body)
         mimic.body.setAllowGravity(false);
         mimic.setSpeed(this.difficultyManager.getMimicSpeed());
-        
-        this.playSound('sfx_mimic', 0.5);
     }
 
     // ============================================
@@ -310,7 +316,7 @@ class GameScene extends Phaser.Scene {
         });
         
         // Play catch sound
-        this.playSound('sfx_catch', 0.5);
+        this.playSound('sfx_eat_cake', 0.5);
         
         // Remove cake
         cake.onCaught(this);
@@ -328,7 +334,7 @@ class GameScene extends Phaser.Scene {
         if (player.isInvincible) return;
         
         // Play hit sound
-        this.playSound('sfx_hit', 0.6);
+        this.playSound('sfx_crying', 0.6);
         
         // Damage player
         const isDead = player.takeDamage();
@@ -352,7 +358,6 @@ class GameScene extends Phaser.Scene {
         
         this.deathCause = 'mimic';
         player.instantDeath();
-        this.playSound('sfx_mimic', 0.8);
         this.gameOver();
     }
 
@@ -387,8 +392,15 @@ class GameScene extends Phaser.Scene {
         this.tomatoTimer.remove();
         this.mimicTimer.remove();
         
-        // Play lose sound
-        this.playSound('sfx_lose', 0.7);
+        // Play lose sound based on death cause
+        if (this.deathCause === 'mimic') {
+            this.playSound('sfx_loss', 0.7);
+        } else {
+            this.playSound('sfx_crying', 0.7);
+        }
+        
+        // Stop BGM
+        this.stopBGM();
         
         // Calculate play time
         const playTime = (this.time.now - this.gameStartTime) / 1000;
@@ -444,6 +456,33 @@ class GameScene extends Phaser.Scene {
             }
         } catch (e) {
             // Audio not loaded — ignore
+        }
+    }
+
+    /**
+     * Play background music with loop
+     */
+    playBGM(key) {
+        try {
+            // Stop any existing BGM
+            this.stopBGM();
+            if (this.cache.audio.exists(key)) {
+                this.bgm = this.sound.add(key, { volume: 0.3, loop: true });
+                this.bgm.play();
+            }
+        } catch (e) {
+            // Audio not available
+        }
+    }
+
+    /**
+     * Stop current BGM
+     */
+    stopBGM() {
+        if (this.bgm && this.bgm.isPlaying) {
+            this.bgm.stop();
+            this.bgm.destroy();
+            this.bgm = null;
         }
     }
 

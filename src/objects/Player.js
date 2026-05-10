@@ -14,12 +14,12 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         // Physics setup
         this.setCollideWorldBounds(true);
         
-        // Scale sprite — the sprites are ~420px tall, we want ~96px in-game
-        this.setScale(0.22);
+        // Scale sprite — sprites are now 128px, we want ~96px in-game
+        this.setScale(0.75);
         
-        // Physics body — adjusted for the new sprite proportions
-        this.body.setSize(300, 380);
-        this.body.setOffset(60, 30);
+        // Physics body — adjusted for 128px sprite
+        this.body.setSize(80, 110);
+        this.body.setOffset(24, 14);
         this.setDepth(10);
         
         // Movement
@@ -73,6 +73,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityY(-this.jumpPower);
             this.isCharging = false;
             this.jumpPower = 0;
+            
+            // Jump SFX
+            this.playSound('sfx_jump', 0.5);
         }
     }
 
@@ -143,6 +146,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         // Switch animation based on movement state
         if (this.isMoving && !wasMoving) {
             this.play('celia_run', true);
+            // Run SFX
+            this.playSound('sfx_run', 0.3);
         } else if (!this.isMoving && wasMoving) {
             this.play('celia_idle', true);
         }
@@ -173,6 +178,19 @@ class Player extends Phaser.Physics.Arcade.Sprite {
                 this.isInvincible = false;
                 this.alpha = 1;
             }
+        }
+    }
+
+    /**
+     * Play sound helper
+     */
+    playSound(key, volume = 0.5) {
+        try {
+            if (this.scene.sound.get(key) || this.scene.cache.audio.exists(key)) {
+                this.scene.sound.play(key, { volume });
+            }
+        } catch (e) {
+            // Audio not loaded — ignore
         }
     }
 }
