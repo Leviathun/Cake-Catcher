@@ -62,14 +62,14 @@ class BootScene extends Phaser.Scene {
         // ============ LOAD ASSETS ============
         
         // Background
-        this.load.image('bg', 'assets/images/bg.png');
+        this.load.image('bg', 'assets/images/bg.v2.png');
         
         // Player spritesheets (NEW: 128x128 per frame, 6 frames = 768x128)
         this.load.spritesheet('idle', 'assets/images/charecter/idle.png', {
             frameWidth: 128,
             frameHeight: 128,
         });
-        this.load.spritesheet('run', 'assets/images/charecter/run.png', {
+        this.load.spritesheet('run', 'assets/images/charecter/run v.2.png', {
             frameWidth: 128,
             frameHeight: 128,
         });

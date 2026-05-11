@@ -121,7 +121,7 @@ class MenuScene extends Phaser.Scene {
         });
         
         // Version text
-        this.add.text(width - 10, height - 10, 'v2', {
+        this.add.text(width - 10, height - 10, 'v2.1', {
             fontFamily: '"Press Start 2P"',
             fontSize: '8px',
             color: '#ffffff',
